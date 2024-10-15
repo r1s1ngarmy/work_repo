@@ -1,0 +1,50 @@
+---
+- name: Update VMware Tools on a vSphere template
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: "Connect to vCenter"
+      community.vmware.vmware_guest:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        name: "{{ template_name }}"
+        state: poweredon
+      delegate_to: localhost
+
+    - name: "Check VMware Tools status"
+      community.vmware.vmware_guest_tools_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        name: "{{ template_name }}"
+      register: vmtools_status
+      delegate_to: localhost
+
+    - name: "Update VMware Tools if not up-to-date"
+      community.vmware.vmware_guest_tools_upgrade:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        name: "{{ template_name }}"
+      when: vmtools_status.instance.tools_status != "current"
+      delegate_to: localhost
+
+    - name: "Power off the template"
+      community.vmware.vmware_guest:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        name: "{{ template_name }}"
+        state: poweredoff
+      delegate_to: localhost
+
+  vars:
+    vcenter_hostname: "your_vcenter_hostname"
+    vcenter_username: "your_vcenter_username"
+    vcenter_password: "your_vcenter_password"
+    template_name: "your_template_name"
