@@ -20,12 +20,17 @@ def wait_for_task(task):
 
 def upgrade_hardware_compatibility(vm):
     """Upgrades the hardware compatibility of a virtual machine."""
-    print(f"Upgrading hardware compatibility for VM: {vm.name}")
-    
-    # Initiate hardware upgrade to the latest supported version
-    task = vm.UpgradeVM_Task(version=None)  # `version=None` upgrades to the latest compatible version
-    wait_for_task(task)
-    print(f"Hardware upgrade completed for VM: {vm.name}")
+    try:
+        print(f"Upgrading hardware compatibility for VM: {vm.name}")
+        
+        # Initiate hardware upgrade to the latest supported version
+        task = vm.UpgradeVM_Task(version=None)  # `version=None` upgrades to the latest compatible version
+        wait_for_task(task)
+        print(f"Hardware upgrade completed for VM: {vm.name}")
+    except vim.fault.AlreadyUpgraded as e:
+        print(f"Hardware is already up-to-date for VM: {vm.name}. Skipping upgrade.")
+    except Exception as e:
+        print(f"Failed to upgrade hardware for VM: {vm.name}. Error: {str(e)}")
 
 def access_and_update_templates(vcenter_host, username, password, template_names, pool_name):
     # Connect to vSphere
